@@ -1,0 +1,37 @@
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import math
+from statistics import mean
+Factors_df = pd.read_csv("Filename.csv")
+portfolio=[]
+betaMkt=[]
+betaSMB=[]
+betaHML=[]
+alpha=[]
+exret=[]
+rskprMkt=[]
+rskprSMB=[]
+rskprHML=[]
+error=[]
+vec_df=pd.DataFrame({'Mkt-RF':Factors_df['Mkt-RF'],'SMB':Factors_df['SMB'],'HML':Factors_df['HML']})
+a = sm.add_constant(vec_df)
+for x in range(math.floor(len(Factors_df.index)/252)):
+    for y in range(100):
+        model=sm.OLS(Factors_df.iloc[(x*252):((x+1)*252),y+105],a[(x*252):((x+1)*252)]).fit()
+        exret.append(mean(Factors_df.iloc[((x+1)*252):((x+2)*252),y+105]))
+        portfolio.append(Factors_df.columns[x+1])
+        betaMkt.append(model.params['Mkt-RF'])
+        betaSMB.append(model.params['SMB'])
+        betaHML.append(model.params['HML'])
+        alpha.append(model.params['const'])
+    betas_df = pd.DataFrame({'betaMkt':betaMkt, 'betaSMB':betaSMB, 'betaHML':betaHML})
+    b=sm.add_constant(betas_df)
+    model1=sm.OLS(exret,b).fit()
+    rskprMkt.append(model1.params['betaMkt'])
+    rskprSMB.append(model1.params['betaSMB'])
+    rskprHML.append(model1.params['betaHML'])
+    error.append(model1.params['const'])
+rskpr_df = pd.DataFrame({'rskprMkt':rskprMkt, 'rskprSMB':rskprSMB, 'rskprHML':rskprHML,'error':error})
+rskpr_df
