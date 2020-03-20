@@ -1,0 +1,34 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+# Data has to be in the format: Column Headers: "Date" (Col 1), *25 portfolios Raw Returns*(Col 2-26), "Risk Free Rate"(Col 27),*25 portfolios excess returns* (Col 28-52),"Mkt-RF"(Col 53), "SMB"(Col 54), "HML" (Col 55) 
+# Reading the CSV
+Factors_df = pd.read_csv("File Name")
+Factors_df
+# FAMA French 3-factor
+# Create vector variables
+portfolio=[]
+betaMkt=[]
+betaSMB=[]
+betaHML=[]
+alpha=[]
+betaMktp=[]
+betaSMBp=[]
+betaHMLp=[]
+alphap=[]
+vec_df=pd.DataFrame({'Mkt-RF':Factors_df['Mkt-RF'],'SMB':Factors_df['SMB'],'HML':Factors_df['HML']})
+a = sm.add_constant(vec_df)
+# Run regressions for each portfolio
+for x in range(25):
+    model=sm.OLS(Factors_df.iloc[:,x+27],a).fit()
+    portfolio.append(Factors_df.columns[x+1])
+    betaMkt.append(model.params['Mkt-RF'])
+    betaSMB.append(model.params['SMB'])
+    betaHML.append(model.params['HML'])
+    betaMktp.append(model.pvalues['Mkt-RF'])
+    betaSMBp.append(model.pvalues['SMB'])
+    betaHMLp.append(model.pvalues['HML'])
+    alpha.append(model.params['const'])
+    alphap.append(model.pvalues['const'])
+results_df = pd.DataFrame({'Portfolio':portfolio,'betaMkt':betaMkt, 'betaMkt p-value':betaMktp, 'betaSMB':betaSMB, 'betaSMB p-value':betaSMBp,'betaHML':betaHML, 'betaHML p-value':betaHMLp,'alpha':alpha, 'alpha p-value':alphap})
+results_df
