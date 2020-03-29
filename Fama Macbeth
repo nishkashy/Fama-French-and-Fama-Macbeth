@@ -4,7 +4,10 @@ import numpy as np
 import statsmodels.api as sm
 import math
 from statistics import mean
+# Data has to be in the format: Column Headers: "Date" (Col 1), *100 portfolios Raw Returns*(Col 2-101), "Mkt-RF"(Col 102), "SMB"(Col 103), "HML" (Col 104) "Risk Free Rate"(Col 105),*100 portfolios excess returns* (Col 106-205)
+# Reading the CSV
 Factors_df = pd.read_csv("Filename.csv")
+# Create lists for betas and risk premium
 portfolio=[]
 betaMkt=[]
 betaSMB=[]
@@ -15,6 +18,7 @@ rskprMkt=[]
 rskprSMB=[]
 rskprHML=[]
 error=[]
+# Calulate betas by regressing sets of 252 days
 vec_df=pd.DataFrame({'Mkt-RF':Factors_df['Mkt-RF'],'SMB':Factors_df['SMB'],'HML':Factors_df['HML']})
 a = sm.add_constant(vec_df)
 for x in range(math.floor(len(Factors_df.index)/252)):
@@ -27,6 +31,7 @@ for x in range(math.floor(len(Factors_df.index)/252)):
         betaHML.append(model.params['HML'])
         alpha.append(model.params['const'])
     betas_df = pd.DataFrame({'betaMkt':betaMkt, 'betaSMB':betaSMB, 'betaHML':betaHML})
+    # Regress the average excess returns on betas to calculate respective risk premiums
     b=sm.add_constant(betas_df)
     model1=sm.OLS(exret,b).fit()
     rskprMkt.append(model1.params['betaMkt'])
